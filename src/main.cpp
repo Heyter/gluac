@@ -1,5 +1,6 @@
 #include "lua_dyn.h"
 #include "lua_jit.h"
+#include "fixunistd.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -7,7 +8,6 @@
 #include <dlfcn.h>
 #endif
 
-#include <unistd.h>
 #include <symbolfinder.hpp>
 
 #define LUA_PREFIX LuaFunctions.
@@ -22,10 +22,10 @@ typedef int(__cdecl *lj_bcwrite_t) (lua_State *L, void *gcproto, lua_Writer, voi
 lj_bcwrite_t lj_bcwrite = NULL;
 
 #ifdef _WIN32
-static const char *LuaJIT_bcwrite_sym = "\x83\xEC\x24\x8B\x4C\x24\x2C\x8B\x54\x24\x30\x8B\x44\x24\x28\x89";
-static const size_t LuaJIT_bcwrite_symlen = 16;
+static const char LuaJIT_bcwrite_sym[] = "\x83\xEC\x24\x8B\x4C\x24\x2C\x8B\x54\x24\x30\x8B\x44\x24\x28\x89";
+static const size_t LuaJIT_bcwrite_symlen = sizeof(LuaJIT_bcwrite_sym) - 1;
 #else
-static const char *LuaJIT_bcwrite_sym = "@lj_bcwrite";
+static const char LuaJIT_bcwrite_sym[] = "@lj_bcwrite";
 static const size_t LuaJIT_bcwrite_symlen = 0;
 #endif
 
@@ -122,7 +122,7 @@ static int lua_main(lua_State* L)
 
 int main(int argc, char* argv[])
 {
-	int opt;
+	int opt = 0;
     while ((opt = getopt(argc, argv, "ps")) != -1) {
         switch (opt) {
         case 'p': g_bParseOnly = true; break;
